@@ -719,7 +719,7 @@ def test_vig_custom(
         width=original_width,
         stem_config=StemConfig(
             stem_type="conv_stem",
-            in_channels=1,
+            in_channels=3,
             out_channels=channels[0],
             total_layers=total_layers,
             act=act,
@@ -802,7 +802,7 @@ def test_dsc_custom(
         width=original_width,
         stem_config=StemConfig(
             stem_type="dsc_stem",
-            in_channels=1,
+            in_channels=3,
             out_channels=channels[0],
             total_layers=total_layers,
             act=act,
@@ -871,7 +871,7 @@ def test_dsc_wo_grapher(
         width=original_width,
         stem_config=StemConfig(
             stem_type="dsc_stem",
-            in_channels=1,
+            in_channels=3,
             out_channels=channels[0],
             total_layers=total_layers,
             act=act,
@@ -940,7 +940,7 @@ def test_wo_dsc_wo_grapher(
         width=original_width,
         stem_config=StemConfig(
             stem_type="dsc_stem",
-            in_channels=1,
+            in_channels=3,
             out_channels=channels[0],
             total_layers=total_layers,
             act=act,
@@ -1024,7 +1024,7 @@ def test_wo_dsc_custom(
         width=original_width,
         stem_config=StemConfig(
             stem_type="dsc_stem",
-            in_channels=1,
+            in_channels=3,
             out_channels=channels[0],
             total_layers=total_layers,
             act=act,

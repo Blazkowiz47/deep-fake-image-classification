@@ -55,5 +55,5 @@ class DatasetGenerator:
         x, y = self.transform(self.data[idx])
         if self.data[idx].to_augment:
             x, y = self.augment(x, y)
-        return x, y
+        return (x, y)
         # return (*[split[idx] for split in self.data],)

@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import albumentations as A
 from common.datapipeline.dataset import DatasetItem, get_dataloader
+from common.util.logger import logger
 
 
 class DatasetWrapper:
@@ -39,19 +40,18 @@ class DatasetWrapper:
 
     def transform(self, data: DatasetItem) -> Any:
         image = cv2.imread(data.path, cv2.IMREAD_COLOR)  # pylint: disable=E1101
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         if image is None:
-            print(data.path)
-        if image.shape[0] > image.shape[1]:
-            image = image.transpose()  # pylint: disable=E1101
+            logger.error(data.path)
         image = cv2.resize(image, (self.width, self.height))  # pylint: disable=E1101
         image = (image - image.min()) / ((image.max() - image.min()) or 1.0)
         image = image.astype("float")
-        image = np.expand_dims(image, axis=0)
-        # image = np.vstack([image, image, image])
+        image = np.transpose(image, axes=(2, 0, 1))
 
         label = np.zeros((self.classes))
         label[data.label] = 1  # One hot encoding
         # return image, label
+
         return image.astype(np.float32), label
 
     def augment(self, image, label) -> Any:
