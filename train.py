@@ -113,7 +113,7 @@ parser.add_argument(
 parser.add_argument(
     "--n-classes",
     type=int,
-    default=301,
+    default=2,
     help="Defines total classes to predict.",
 )
 
