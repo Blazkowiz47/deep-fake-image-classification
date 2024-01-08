@@ -92,7 +92,7 @@ parser.add_argument(
 parser.add_argument(
     "--root-dir",
     type=str,
-    default="~/cluster/nbl-users/Shreyas-Sushrut-Raghu/PRINT_SCAN/",
+    default="/home/ubuntu/cluster/nbl-users/Shreyas-Sushrut-Raghu/PRINT_SCAN/",
     help="Dataset name.",
 )
 

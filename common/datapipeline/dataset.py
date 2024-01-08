@@ -54,6 +54,6 @@ class DatasetGenerator:
     def __getitem__(self, idx: int):
         x, y = self.transform(self.data[idx])
         if self.data[idx].to_augment:
-            x = self.augment(x)
+            x, y = self.augment(x, y)
         return x, y
         # return (*[split[idx] for split in self.data],)

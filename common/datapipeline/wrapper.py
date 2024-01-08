@@ -66,7 +66,7 @@ class DatasetWrapper:
         )
         transformed = transform(image=image)
         transformed_image = transformed["image"]
-        return transformed_image, label
+        return np.array(transformed_image), label
 
     def get_train_dataset(self, augment_times: int, batch_size: int):
         data: List[DatasetItem] = []
