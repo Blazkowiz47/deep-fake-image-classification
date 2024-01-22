@@ -125,19 +125,6 @@ parser.add_argument(
     default=224,
     help="Defines width of the image.",
 )
-parser.add_argument(
-    "--pretrained-model-path",
-    type=str,
-    default=None,
-    help="Defines pretrained model's path.",
-)
-
-parser.add_argument(
-    "--pretrained-classes",
-    type=int,
-    default=None,
-    help="Defines pretrained model's predictor_classes.",
-)
 
 parser.add_argument(
     "--total-layers",
@@ -184,7 +171,7 @@ def main():
         morph_types = reversed(morph_types)
     for morph_type in morph_types:
         wandb_run_name = args.config + args.printer + morph_type
-        process = f"python train.py -c {args.config} --epochs={args.epochs} --batch-size={args.batch_size}  --grapher-units={args.grapher_units} --total-layers={args.total_layers} --pretrained-classes={args.pretrained_classes} --pretrained-model-path={args.pretrained_model_path} --n-classes={args.n_classes} --validate-after-epochs={args.validate_after_epochs} --wandb-run-name={wandb_run_name}"
+        process = f"python train.py -c {args.config} --epochs={args.epochs} --batch-size={args.batch_size}  --grapher-units={args.grapher_units} --total-layers={args.total_layers}  --n-classes={args.n_classes} --validate-after-epochs={args.validate_after_epochs} --wandb-run-name={wandb_run_name}"
         os.system(process)
 
 
