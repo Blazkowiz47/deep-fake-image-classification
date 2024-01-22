@@ -4,14 +4,7 @@ calls the train pipeline with configs.
 """
 import argparse
 
-import json
-import torch
-import wandb
-from common.trainpipeline.config import ModelConfig
-import common_configs as cfgs
-from common.trainpipeline.train import train
-from common.util.logger import logger
-from common.util.enums import EnvironmentType
+import os
 
 # python train.py --config="grapher_12_conv_gelu_config" --wandb-run-name="grapher only"
 
@@ -170,170 +163,12 @@ parser.add_argument(
 )
 
 
-def get_config(
-    config: str,
-    act: str,
-    pred_type: str,
-    n_classes: int,
-    num_heads: int,
-    height: int,
-    width: int,
-    total_layers: int,
-    grapher_units: str,
-) -> ModelConfig:
-    """
-    Fetches appropriate config.
-    """
-    if config == "arcvein":
-        cfg = ModelConfig()
-        cfg.arcvein = True
-        return cfg
-
-    if config == "vig_pyramid_tiny":
-        return cfgs.vig_pyramid_tiny(
-            act,
-            pred_type,
-            n_classes,
-            height,
-            width,
-        )
-
-    if config == "pretrained_vig_pyramid_tiny":
-        return cfgs.pretrained_vig_pyramid_tiny(
-            act,
-            pred_type,
-            n_classes,
-            height,
-            width,
-        )
-    if config == "vig_attention_at_last_pyramid_tiny":
-        return cfgs.vig_attention_at_last_pyramid_tiny(
-            act,
-            pred_type,
-            n_classes,
-            num_heads,
-            height,
-            width,
-        )
-
-    if config == "vig_attention_pyramid_tiny":
-        return cfgs.vig_attention_pyramid_tiny(
-            act,
-            pred_type,
-            n_classes,
-            num_heads,
-            height,
-            width,
-        )
-
-    if config == "vig_attention_only_at_last_pyramid_tiny":
-        return cfgs.vig_attention_only_at_last_pyramid_tiny(
-            act,
-            pred_type,
-            n_classes,
-            num_heads,
-            height,
-            width,
-        )
-
-    if config == "pretrained_vig_attention_only_at_last_pyramid_tiny":
-        return cfgs.pretrained_vig_attention_only_at_last_pyramid_tiny(
-            act,
-            pred_type,
-            n_classes,
-            num_heads,
-            height,
-            width,
-        )
-
-    if config == "vig_pyramid_compact":
-        return cfgs.vig_pyramid_compact(
-            act,
-            pred_type,
-            n_classes,
-            height,
-            width,
-        )
-
-    if config == "test_vig_custom":
-        return cfgs.test_vig_custom(
-            act,
-            pred_type,
-            n_classes,
-            height,
-            width,
-        )
-
-    if config == "test_dsc_custom":
-        graphers = [int(x) for x in grapher_units.split(",")]
-        return cfgs.test_dsc_custom(
-            act,
-            pred_type,
-            n_classes,
-            height,
-            width,
-            total_layers,
-            grapher_units=graphers,
-        )
-    if config == "test_dsc_wo_grapher":
-        return cfgs.test_dsc_wo_grapher(
-            act,
-            pred_type,
-            n_classes,
-            height,
-            width,
-            total_layers,
-        )
-
-    if config == "test_wo_dsc_wo_grapher":
-        return cfgs.test_wo_dsc_wo_grapher(
-            act,
-            pred_type,
-            n_classes,
-            height,
-            width,
-            total_layers,
-        )
-
-    if config == "test_wo_dsc_custom":
-        graphers = [int(x) for x in grapher_units.split(",")]
-        return cfgs.test_wo_dsc_custom(
-            act,
-            pred_type,
-            n_classes,
-            height,
-            width,
-            total_layers,
-            grapher_units=graphers,
-        )
-    raise ValueError(f"Wrong config: {config}")
-
-
 def main():
     """
     Wrapper for the driver.
     """
     args = parser.parse_args()
-    epochs = args.epochs
-    batch_size = args.batch_size
-    logger.info("BATCHSIZE: %s", batch_size)
-    environment = (
-        EnvironmentType.PYTORCH
-        if args.environment == "pytorch"
-        else EnvironmentType.TENSORFLOW
-    )
-    config = get_config(
-        args.config,
-        args.act,
-        args.pred_type,
-        args.n_classes,
-        args.num_heads,
-        args.height,
-        args.width,
-        args.total_layers,
-        args.grapher_units,
-    )
-    for morph_type in [
+    morph_types = [
         "Morphing_Diffusion_2024",
         "cvmi",
         "lma",
@@ -344,57 +179,13 @@ def main():
         "pipe",
         "regen",
         "stylegan",
-    ]:
+    ]
+    if args.reverse:
+        morph_types = reversed(morph_types)
+    for morph_type in morph_types:
         wandb_run_name = args.config + args.printer + morph_type
-        if wandb_run_name:
-            wandb.init(
-                # set the wandb project where this run will be logged
-                project="deep-fake-classification",
-                name=wandb_run_name,
-                config={
-                    "architecture": args.config,
-                    "printer": args.printer,
-                    "morph_type": morph_type,
-                    "epochs": epochs,
-                    "activation": args.act,
-                    "predictor_type": args.pred_type,
-                },
-            )
-
-        eer, tar1, tar01, tar001 = train(
-            config,
-            morph_type,
-            args.printer,
-            args.root_dir,
-            batch_size,
-            epochs,
-            environment,
-            wandb_run_name,
-            args.validate_after_epochs,
-            args.learning_rate,
-            args.continue_model,
-            args.augment_times,
-            args.n_classes,
-            args.height,
-            args.width,
-            pretrained_model_path=args.pretrained_model_path,
-            pretrained_predictor_classes=args.pretrained_classes,
-        )
-
-        with open(f"results/{wandb_run_name}.json", "w+") as fp:
-            json.dump(
-                {
-                    "eer": eer,
-                    "1": tar1,
-                    "0.1": tar01,
-                    "0.01": tar001,
-                },
-                fp,
-            )
-
-        if wandb_run_name:
-            wandb.finish()
-            torch.cuda.empty_cache()
+        process = f"python -c {args.config} --epochs={args.epochs} --batch-size={args.batch_size}  --grapher-units={args.grapher_units} --total-layers={args.total_layers} --pretrained-classes={args.pretrained_classes} --pretrained-model-path={args.pretrained_model_path} --n-classes={args.n_classes} --validate-after-epochs={args.validate_after_epochs} --wandb-run-name={wandb_run_name}"
+        os.system(process)
 
 
 if __name__ == "__main__":
