@@ -60,18 +60,23 @@ class EER(Metric):
     def compute(self):
         genuine = self.genuine.detach().cpu().numpy()
         morphed = self.attack.detach().cpu().numpy()
-        eer, far, ffr = self.eng.EER_DET_Spoof_Far(
-            genuine, morphed, matlab.double(10000), nargout=3
-        )
-        far = np.array(far)
-        ffr = np.array(ffr)
-        one = np.argmin(np.abs(far - 1))
-        pointone = np.argmin(np.abs(far - 0.1))
-        pointzeroone = np.argmin(np.abs(far - 0.01))
-        # _, _, _ = self.eng.Plot_ROC(genuine, morphed, matlab.double(10000), nargout=3)
-        return (
-            eer,
-            100 - ffr[0][one],
-            100 - ffr[0][pointone],
-            100 - ffr[0][pointzeroone],
-        )
+        try:
+            eer, far, ffr = self.eng.EER_DET_Spoof_Far(
+                genuine, morphed, matlab.double(10000), nargout=3
+            )
+        except Exception:
+            eer, far, ffr = None, [], []
+        if eer:
+            far = np.array(far)
+            ffr = np.array(ffr)
+            one = np.argmin(np.abs(far - 1))
+            pointone = np.argmin(np.abs(far - 0.1))
+            pointzeroone = np.argmin(np.abs(far - 0.01))
+            # _, _, _ = self.eng.Plot_ROC(genuine, morphed, matlab.double(10000), nargout=3)
+            return (
+                eer,
+                100 - ffr[0][one],
+                100 - ffr[0][pointone],
+                100 - ffr[0][pointzeroone],
+            )
+        return 100, 0, 0
