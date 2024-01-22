@@ -71,7 +71,7 @@ def get_test_metrics(n_classes: int, eng: Any) -> list[Metric]:
             task="multiclass",
             num_classes=n_classes,
         ),
-        EER(eng, genuine_class_label=1 if n_classes == 2 else None),
+        EER(eng, genuine_class_label=0),
         # ConfusionMatrix().to(device),
     ]
 
@@ -85,7 +85,7 @@ def get_val_metrics(n_classes: int, eng: Any) -> list[Metric]:
             task="multiclass",
             num_classes=n_classes,
         ),
-        EER(eng, genuine_class_label=1 if n_classes == 2 else None),
+        EER(eng, genuine_class_label=0),
         # ConfusionMatrix().to(device),
     ]
 
