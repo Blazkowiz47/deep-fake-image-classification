@@ -339,7 +339,8 @@ def main():
             name=wandb_run_name,
             config={
                 "architecture": args.config,
-                "dataset": args.dataset,
+                "printer": args.printer,
+                "morph_type": args.morph_type,
                 "epochs": epochs,
                 "activation": args.act,
                 "predictor_type": args.pred_type,
