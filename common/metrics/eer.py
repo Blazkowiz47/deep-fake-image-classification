@@ -79,4 +79,4 @@ class EER(Metric):
                 100 - ffr[0][pointone],
                 100 - ffr[0][pointzeroone],
             )
-        return 100, 0, 0
+        return (100, 0, 0, 0)
