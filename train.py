@@ -335,7 +335,7 @@ def main():
     if wandb_run_name:
         wandb.init(
             # set the wandb project where this run will be logged
-            project="finger-vein-recognition",
+            project="deep-fake-classification",
             name=wandb_run_name,
             config={
                 "architecture": args.config,
