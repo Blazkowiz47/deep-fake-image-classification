@@ -170,7 +170,7 @@ def main():
     if args.reverse:
         morph_types = reversed(morph_types)
     for morph_type in morph_types:
-        wandb_run_name = args.config + args.printer + morph_type
+        wandb_run_name = args.config + "_" + args.printer + "_" + morph_type
         process = f"python train.py -c {args.config} --epochs={args.epochs} --batch-size={args.batch_size}  --grapher-units={args.grapher_units} --total-layers={args.total_layers}  --n-classes={args.n_classes} --validate-after-epochs={args.validate_after_epochs} --wandb-run-name={wandb_run_name}"
         os.system(process)
 
