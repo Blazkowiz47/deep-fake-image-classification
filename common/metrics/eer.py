@@ -9,6 +9,7 @@ import numpy as np
 import torch
 from torch import Tensor
 from torchmetrics import Metric
+from common.util.logger import logger
 
 
 class EER(Metric):
@@ -64,19 +65,24 @@ class EER(Metric):
             eer, far, ffr = self.eng.EER_DET_Spoof_Far(
                 genuine, morphed, matlab.double(10000), nargout=3
             )
-        except Exception:
+            logger.info(f"Actual eer:{eer}")
+        except Exception as e:
+            logger.info(f"Input: genuine {genuine.shape}, morphed {morphed.shape}")
+            logger.info(f"Error: {e}")
             eer, far, ffr = None, [], []
-        if eer:
-            far = np.array(far)
-            ffr = np.array(ffr)
-            one = np.argmin(np.abs(far - 1))
-            pointone = np.argmin(np.abs(far - 0.1))
-            pointzeroone = np.argmin(np.abs(far - 0.01))
-            # _, _, _ = self.eng.Plot_ROC(genuine, morphed, matlab.double(10000), nargout=3)
-            return (
-                eer,
-                100 - ffr[0][one],
-                100 - ffr[0][pointone],
-                100 - ffr[0][pointzeroone],
-            )
-        return (100, 0, 0, 0)
+
+        if eer is None:
+            return (100, 0, 0, 0)
+
+        far = np.array(far)
+        ffr = np.array(ffr)
+        one = np.argmin(np.abs(far - 1))
+        pointone = np.argmin(np.abs(far - 0.1))
+        pointzeroone = np.argmin(np.abs(far - 0.01))
+        # _, _, _ = self.eng.Plot_ROC(genuine, morphed, matlab.double(10000), nargout=3)
+        return (
+            eer,
+            100 - ffr[0][one],
+            100 - ffr[0][pointone],
+            100 - ffr[0][pointzeroone],
+        )

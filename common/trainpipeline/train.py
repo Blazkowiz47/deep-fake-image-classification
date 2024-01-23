@@ -310,6 +310,8 @@ def train(
             logger.info("%s: %s", k, v)
         if log_on_wandb:
             wandb.log(log)
+        if best_eer == 0:
+            break
 
         logger.info("Best EER:%s", best_eer)
         logger.info("Best TAR 1: %s", best_one)
