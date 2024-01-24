@@ -1,3 +1,31 @@
+def ParallelSums(arr):
+    if len(arr) % 2:
+        return -1
+    arr.sort()
+    if len(arr) == 2:
+        if arr[0] == arr[1]:
+            return arr
+        else:
+            return -1
+
+    i, j = 0, len(arr) - 1
+    k, l = len(arr) // 2 - 1, len(arr) // 2
+    osum, isum = 0, 0
+    while i < k and l < j:
+        osum = osum + arr[i] + arr[j]
+        isum = isum + arr[k] + arr[l]
+        i += 1
+        j -= 1
+        k -= 1
+        l += 1
+    print(osum, isum, [*arr[:i], *arr[j + 1 :], arr[i : j + 1]])
+    if osum != isum:
+        return -1
+    return [*arr[:i], *arr[j + 1 :], arr[i : j + 1]]
+
+
+print(ParallelSums([16, 22, 35, 8, 20, 1, 21, 11]))
+exit()
 a = [True] * 7
 
 
