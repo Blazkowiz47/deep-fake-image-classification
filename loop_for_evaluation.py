@@ -3,6 +3,7 @@ Evaluation loop
 Evaluates the pretrained model based on a particular dataset.
 """
 import argparse
+import time
 import os
 from typing import List
 
@@ -30,7 +31,7 @@ parser.add_argument(
 
 parser.add_argument(
     "--batch-size",
-    default=128,
+    default=32,
     type=int,
     help="Add batch_size.",
 )
@@ -172,6 +173,7 @@ def main():
                         args.pred_type,
                         args.act,
                     )
+                    time.sleep(1)
 
 
 if __name__ == "__main__":

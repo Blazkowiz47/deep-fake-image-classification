@@ -156,7 +156,6 @@ def get_metrics(n_classes: int, eng: Any) -> list[Metric]:
 def main():
     args = parser.parse_args()
     batch_size = args.batch_size
-    logger.info("BATCHSIZE: %s", batch_size)
     config = get_config(
         args.config,
         args.act,
