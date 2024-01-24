@@ -8,30 +8,20 @@ import json
 from torch.nn import Module
 from timm.loss import SoftTargetCrossEntropy
 from common.metrics.eer import EER
-from common.trainpipeline.config import ModelConfig
-import common_configs as cfgs
-from common.trainpipeline.train import cuda_info, train
+from common.trainpipeline.train import cuda_info
 from common.util.logger import logger
-from common.util.enums import EnvironmentType
 from train import get_config
-from typing import Any, Dict, List, Optional
+from typing import Any
 import os
 import numpy as np
 import torch
-from torch import optim
-from torch.nn import Module
 from torch.optim import lr_scheduler as lr_scheduler
 from tqdm import tqdm
-from timm.loss import SoftTargetCrossEntropy
 from torchmetrics import Metric
 from torchmetrics.classification import Accuracy
 
-from common.trainpipeline.config import ModelConfig
 from common.datapipeline.wrapper import DatasetWrapper
-from common.metrics.eer import EER
 from common.trainpipeline.model.model import get_model
-from common.util.logger import logger
-from torchmetrics.classification import Accuracy
 import matlab
 import matlab.engine
 
@@ -153,7 +143,6 @@ def main():
     args = parser.parse_args()
     batch_size = args.batch_size
     logger.info("BATCHSIZE: %s", batch_size)
-    wandb_run_name = args.wandb_run_name
     config = get_config(
         args.config,
         args.act,
@@ -207,7 +196,7 @@ def main():
         [train_dataset, test_dataset], ["Train Set", "Test Set"]
     ):
         losses = []
-        for inputs, labels in tqdm(train_dataset, desc=f"Evaluating {dataset_name}: "):
+        for inputs, labels in tqdm(dataset, desc=f"Evaluating {dataset_name}: "):
             inputs = inputs.to(device).float()
             labels = labels.to(device).float()
             outputs = model(inputs)  # pylint: disable=E1102
