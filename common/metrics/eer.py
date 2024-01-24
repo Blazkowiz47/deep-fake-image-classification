@@ -65,7 +65,6 @@ class EER(Metric):
             eer, far, ffr = self.eng.EER_DET_Spoof_Far(
                 genuine, morphed, matlab.double(10000), nargout=3
             )
-            logger.info(f"Actual eer:{eer}")
         except Exception as e:
             logger.info(f"Input: genuine {genuine.shape}, morphed {morphed.shape}")
             logger.info(f"Error: {e}")

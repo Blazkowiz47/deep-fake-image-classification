@@ -39,6 +39,14 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "-o",
+    "--save-results",
+    default=None,
+    type=str,
+    help="Path to save results",
+)
+
+parser.add_argument(
     "--batch-size",
     default=128,
     type=int,
@@ -109,6 +117,12 @@ parser.add_argument(
     help="TOTAL LAYERS FOR DSC STEM",
 )
 
+parser.add_argument(
+    "--num-heads",
+    type=int,
+    default=5,
+    help="Total heads",
+)
 
 parser.add_argument(
     "--grapher-units",
@@ -147,7 +161,7 @@ def main():
         args.config,
         args.act,
         args.pred_type,
-        args.n_classes,
+        2,
         args.num_heads,
         args.height,
         args.width,
@@ -164,17 +178,11 @@ def main():
         logger.exception("Cannot initialise matlab engine")
 
     # set device
-    device = cuda_info()
+    device = cuda_info(silent=True)
     # Load the model
     model = get_model(config)
     model.load_state_dict(torch.load(args.model_path))
     model = model.to(device)
-    logger.info(model)
-    logger.info("Total parameters: %s", sum(p.numel() for p in model.parameters()))
-    logger.info(
-        "Total trainable parameters: %s",
-        sum(p.numel() for p in model.parameters() if p.requires_grad),
-    )
     # Set model to evaluation mode
     model.eval()
     # Load the dataset
@@ -208,25 +216,33 @@ def main():
             predicted = outputs.argmax(dim=1)
             labels = labels.argmax(dim=1)
             metrics[0].update(predicted, labels)
-            eer, one, pointone, pointzeroone = metrics[1].compute()
-            results[dataset_name] = (
-                {
-                    "accuracy": metrics[0].compute().item(),
-                    "loss": np.mean(losses),
-                    "eer": eer,
-                    "tar1": one,
-                    "tar0.1": pointone,
-                    "tar0.01": pointzeroone,
-                },
-            )
+
+        eer, one, pointone, pointzeroone = metrics[1].compute()
+        results[dataset_name] = (
+            {
+                "accuracy": metrics[0].compute().item(),
+                "loss": np.mean(losses),
+                "eer": eer,
+                "tar1": one,
+                "tar0.1": pointone,
+                "tar0.01": pointzeroone,
+            },
+        )
 
         for metric in metrics:
             metric.reset()
-    model_name = args.model_path.removeprefix("best_eer_test").split(".")[0]
 
-    with open(
-        f"results/{model_name}_{args.printer}_{args.morph_type}.json", "w+"
-    ) as fp:
+    if args.save_results is None:
+        print(results, sep="\n")
+        return
+
+    file_model_name = (
+        args.save_results
+        if args.save_results
+        else f'results/eval_{args.model_path.split("/")[-1].removeprefix("best_eer_test").split(".")[0]}_{args.printer}_{args.morph_type}.json'
+    )
+
+    with open(file_model_name, "w+") as fp:
         json.dump(
             results,
             fp,

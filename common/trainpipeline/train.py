@@ -99,7 +99,7 @@ def add_label(metric: Dict[str, Any], label: str = "") -> Dict[str, Any]:
     return {f"{label}_{k}": v for k, v in metric.items()}
 
 
-def cuda_info() -> str:
+def cuda_info(silent: bool = False) -> str:
     """
     Prints cuda info.
     """
@@ -107,19 +107,21 @@ def cuda_info() -> str:
     device = torch.device(  # pylint: disable=E1101
         "cuda" if torch.cuda.is_available() else "cpu"
     )  # pylint: disable=E1101
-    logger.info("Using device: %s", device)
+    if not silent:
+        logger.info("Using device: %s", device)
 
     # Additional Info when using cuda
-    if device.type == "cuda":
-        logger.info(torch.cuda.get_device_name(0))
-        logger.info("Memory Usage:")
-        logger.info(
-            "Allocated: %s GB",
-            round(torch.cuda.memory_allocated(0) / 1024**3, 1),
-        )
-        logger.info(
-            "Cached: %s GB", round(torch.cuda.memory_reserved(0) / 1024**3, 1)
-        )
+    if not silent:
+        if device.type == "cuda":
+            logger.info(torch.cuda.get_device_name(0))
+            logger.info("Memory Usage:")
+            logger.info(
+                "Allocated: %s GB",
+                round(torch.cuda.memory_allocated(0) / 1024**3, 1),
+            )
+            logger.info(
+                "Cached: %s GB", round(torch.cuda.memory_reserved(0) / 1024**3, 1)
+            )
     return device
 
 
