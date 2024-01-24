@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser(
     description="Training Config",
     add_help=True,
 )
+
 parser.add_argument(
     "-c",
     "--config",
@@ -19,36 +20,35 @@ parser.add_argument(
     type=str,
     help="Put model config name from common_config",
 )
+
 parser.add_argument(
     "--epochs",
     default=30,
     type=int,
     help="Add number of epochs.",
 )
+
 parser.add_argument(
     "--batch-size",
     default=32,
     type=int,
     help="Add batch_size.",
 )
-parser.add_argument(
-    "--environment",
-    default="pytorch",
-    type=str,
-    help="Specify environment. pytorch or tensorflow.",
-)
+
 parser.add_argument(
     "--wandb-run-name",
     type=str,
     default=None,
     help="Wandb run name",
 )
+
 parser.add_argument(
     "--validate-after-epochs",
     type=int,
     default=1,
     help="Validate after epochs.",
 )
+
 parser.add_argument(
     "--learning-rate",
     type=float,
@@ -76,6 +76,7 @@ parser.add_argument(
     default=None,
     help=" wil continue from Printer type: rico , digital or DNP",
 )
+
 parser.add_argument(
     "--root-dir",
     type=str,
@@ -171,7 +172,7 @@ def main():
         morph_types = reversed(morph_types)
     for morph_type in morph_types:
         wandb_run_name = args.config + "_" + args.printer + "_" + morph_type
-        process = f"python train.py -c {args.config} --printer={args.printer} --morph-type={morph_type} --epochs={args.epochs} --batch-size={args.batch_size}  --grapher-units={args.grapher_units} --total-layers={args.total_layers}  --n-classes={args.n_classes} --validate-after-epochs={args.validate_after_epochs} --wandb-run-name={wandb_run_name}"
+        process = f"python train.py -c {args.config} --printer={args.printer} --morph-type={morph_type} --epochs={args.epochs} --batch-size={args.batch_size}  --grapher-units={args.grapher_units} --total-layers={args.total_layers} --validate-after-epochs={args.validate_after_epochs} --wandb-run-name={wandb_run_name}"
         os.system(process)
 
 

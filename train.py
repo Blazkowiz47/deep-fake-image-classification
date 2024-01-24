@@ -111,14 +111,6 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--n-classes",
-    type=int,
-    default=2,
-    help="Defines total classes to predict.",
-)
-
-
-parser.add_argument(
     "--num-heads",
     type=int,
     default=4,
@@ -315,11 +307,6 @@ def main():
     epochs = args.epochs
     batch_size = args.batch_size
     logger.info("BATCHSIZE: %s", batch_size)
-    environment = (
-        EnvironmentType.PYTORCH
-        if args.environment == "pytorch"
-        else EnvironmentType.TENSORFLOW
-    )
     wandb_run_name = args.wandb_run_name
     config = get_config(
         args.config,
@@ -354,13 +341,12 @@ def main():
         args.root_dir,
         batch_size,
         epochs,
-        environment,
         wandb_run_name,
         args.validate_after_epochs,
         args.learning_rate,
         args.continue_model,
         args.augment_times,
-        args.n_classes,
+        2,
         args.height,
         args.width,
         pretrained_model_path=args.pretrained_model_path,

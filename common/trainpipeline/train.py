@@ -19,8 +19,7 @@ from common.datapipeline.wrapper import DatasetWrapper
 from common.metrics.eer import EER
 from common.trainpipeline.model.model import get_model
 from common.util.logger import logger
-from common.util.enums import EnvironmentType
-from torchmetrics.classification import Accuracy, MulticlassPrecision, MulticlassRecall
+from torchmetrics.classification import Accuracy
 import matlab
 import matlab.engine
 
@@ -131,7 +130,6 @@ def train(
     root_dir: str,
     batch_size: int = 10,
     epochs: int = 1,
-    environment: EnvironmentType = EnvironmentType.PYTORCH,
     log_on_wandb: Optional[str] = None,
     validate_after_epochs: int = 5,
     learning_rate: float = 1e-3,
@@ -203,31 +201,17 @@ def train(
             if inputs.shape[0] == 1:
                 inputs = torch.cat((inputs, inputs), 0)  # pylint: disable=E1101
                 labels = torch.cat((labels, labels), 0)  # pylint: disable=E1101
-            # start = time.time()
-            # with profiler.profile(record_shapes=True) as prof:
             inputs = inputs.cuda().float()
             labels = labels.cuda().float()
-            # end = time.time()
-            # logger.info("Leaded data on cuda. %s", str(end - start))
             optimizer.zero_grad()
-            # start = time.time()
             outputs = model(inputs)  # pylint: disable=E1102
-            # end = time.time()
-            # logger.info("Forward prop. %s", str(end - start))
             loss = train_loss_fn(outputs, labels)  # pylint: disable=E1102
-            # start = time.time()
             training_loss.append(loss.item())
             loss.backward()
-            # end = time.time()
-            # logger.info("Backward prop. %s", str(end - start))
             optimizer.step()
-            # train_metrics[1].update(outputs, labels)
-            # start = time.time()
             predicted = outputs.argmax(dim=1)
             labels = labels.argmax(dim=1)
             train_metrics[0].update(predicted, labels)
-            # end = time.time()
-            # logger.info("Metric. %s", str(end - start))
 
         scheduler.step()
         model.eval()
@@ -236,7 +220,6 @@ def train(
             add_label(
                 {
                     "accuracy": train_metrics[0].compute().item(),
-                    # "eer": train_metrics[1].compute(),
                     "loss": np.mean(training_loss),
                 },
                 "train",
@@ -249,9 +232,6 @@ def train(
             val_loss = []
             with torch.no_grad():
                 for inputs, labels in tqdm(validation_dataset, desc="Validation:"):
-                    if inputs.shape[0] == 1:
-                        inputs = torch.cat((inputs, inputs), 0)  # pylint: disable=E1101
-                        labels = torch.cat((labels, labels), 0)  # pylint: disable=E1101
                     inputs = inputs.to(device).float()
                     labels = labels.to(device).float()
                     outputs = model(inputs)  # pylint: disable=E1102
