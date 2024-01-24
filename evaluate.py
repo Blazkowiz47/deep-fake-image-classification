@@ -26,7 +26,7 @@ import matlab
 import matlab.engine
 
 parser = argparse.ArgumentParser(
-    description="Training Config",
+    description="Evaluation Config",
     add_help=True,
 )
 
@@ -231,3 +231,7 @@ def main():
             results,
             fp,
         )
+
+
+if __name__ == "__main__":
+    main()
