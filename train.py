@@ -312,7 +312,7 @@ def main():
         args.config,
         args.act,
         args.pred_type,
-        args.n_classes,
+        2,
         args.num_heads,
         args.height,
         args.width,
