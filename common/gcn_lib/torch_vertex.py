@@ -1,6 +1,7 @@
 # 2022.06.17-Changed for building ViG model
 #            Huawei Technologies Co., Ltd. <foss@huawei.com>
 from dataclasses import dataclass
+from typing import Optional
 import numpy as np
 import torch
 from torch import nn
@@ -98,7 +99,13 @@ class GraphConv2d(nn.Module):
     """
 
     def __init__(
-        self, in_channels, out_channels, conv="edge", act="relu", norm=None, bias=True
+        self,
+        in_channels,
+        out_channels,
+        conv="edge",
+        act="relu",
+        norm=None,
+        bias=True,
     ):
         super(GraphConv2d, self).__init__()
         if conv == "edge":
@@ -133,6 +140,7 @@ class DyGraphConv2d(GraphConv2d):
         bias=True,
         stochastic=False,
         epsilon=0.0,
+        heads: Optional[int] = None,
         r=1,
     ):
         super(DyGraphConv2d, self).__init__(
@@ -141,9 +149,16 @@ class DyGraphConv2d(GraphConv2d):
         self.k = kernel_size
         self.d = dilation
         self.r = r
-        self.dilated_knn_graph = DenseDilatedKnnGraph(
-            kernel_size, int(dilation), stochastic, epsilon
-        )
+        if heads:
+            self.dilated_knn_graph = [
+                DenseDilatedKnnGraph(kernel_size, int(dilation), stochastic, epsilon)
+                for _ in range(heads)
+            ]
+        else:
+            self.dilated_knn_graph = DenseDilatedKnnGraph(
+                kernel_size, int(dilation), stochastic, epsilon
+            )
+        self.heads = heads
 
     def forward(self, x, relative_pos=None):
         """
@@ -154,10 +169,27 @@ class DyGraphConv2d(GraphConv2d):
         if self.r > 1:
             y = F.avg_pool2d(x, self.r, self.r)
             y = y.reshape(B, C, -1, 1).contiguous()
-        x = x.reshape(B, C, -1, 1).contiguous()
-        edge_index = self.dilated_knn_graph(x, y, relative_pos)
-        x = super(DyGraphConv2d, self).forward(x, edge_index, y)
-        return x.reshape(B, -1, H, W).contiguous()
+        x = x.view(B, C, -1, 1)
+        if self.heads:
+            splitheads = [*torch.split(x, self.heads, 2)]
+            splity = None
+            if y:
+                splity = torch.split(y, self.heads, 2)
+
+            for head in range(self.heads):
+                edge_index = self.dilated_knn_graph[head](
+                    splitheads[head], splity[head] if splity else None, relative_pos
+                )
+                splitheads[head] = super(DyGraphConv2d, self).forward(
+                    splitheads[head], edge_index, splity[head] if splity else None
+                )
+            x = torch.concat(splitheads, dim=2)
+            return x.reshape(B, -1, H, W).contiguous()
+
+        else:
+            edge_index = self.dilated_knn_graph(x, y, relative_pos)
+            x = super(DyGraphConv2d, self).forward(x, edge_index, y)
+            return x.reshape(B, -1, H, W).contiguous()
 
 
 @dataclass
@@ -198,6 +230,7 @@ class GrapherConfig:
     relative_pos: bool = False
     max_dilation: float = 0
     neighbour_number: int = 9
+    heads: int = 4
 
 
 class Grapher(nn.Module):
@@ -231,6 +264,7 @@ class Grapher(nn.Module):
             config.bias,
             config.stochastic,
             config.epsilon,
+            config.heads,
             config.r,
         )
         self.fc2 = nn.Sequential(

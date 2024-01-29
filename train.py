@@ -111,9 +111,9 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--num-heads",
-    type=int,
-    default=4,
+    "--heads-list",
+    type=str,
+    default="4,2,1,1",
     help="Defines total number of heads in attention.",
 )
 
@@ -165,7 +165,7 @@ def get_config(
     act: str,
     pred_type: str,
     n_classes: int,
-    num_heads: int,
+    heads_list: str,
     height: int,
     width: int,
     total_layers: int,
@@ -201,7 +201,7 @@ def get_config(
             act,
             pred_type,
             n_classes,
-            num_heads,
+            heads,
             height,
             width,
         )
@@ -211,7 +211,7 @@ def get_config(
             act,
             pred_type,
             n_classes,
-            num_heads,
+            heads,
             height,
             width,
         )
@@ -221,7 +221,7 @@ def get_config(
             act,
             pred_type,
             n_classes,
-            num_heads,
+            heads,
             height,
             width,
         )
@@ -231,7 +231,7 @@ def get_config(
             act,
             pred_type,
             n_classes,
-            num_heads,
+            heads,
             height,
             width,
         )
@@ -252,6 +252,17 @@ def get_config(
             n_classes,
             height,
             width,
+        )
+
+    if config == "test_multihead_custom":
+        heads = [int(x) for x in heads_list.split(",")]
+        return cfgs.test_multihead_custom(
+            act,
+            pred_type,
+            n_classes,
+            height,
+            width,
+            heads,
         )
 
     if config == "test_dsc_custom":
@@ -313,7 +324,7 @@ def main():
         args.act,
         args.pred_type,
         2,
-        args.num_heads,
+        args.heads_list,
         args.height,
         args.width,
         args.total_layers,
