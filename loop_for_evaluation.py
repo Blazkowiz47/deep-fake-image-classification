@@ -6,7 +6,7 @@ import argparse
 import time
 import os
 from typing import List
-
+from tqdm import tqdm
 
 parser = argparse.ArgumentParser(
     description="Evaluation Config",
@@ -115,6 +115,15 @@ parser.add_argument(
 )
 
 
+parser.add_argument(
+    "-r",
+    "--reverse",
+    type=bool,
+    default=False,
+    help="Evaluate in reverse order",
+)
+
+
 def evaluate(
     printer,
     morph_type,
@@ -130,7 +139,7 @@ def evaluate(
     pred_type,
     act,
 ):
-    process: str = f"python evaluate.py -c {config} --morph-type={morph_type} --printer={printer} -f models/checkpoints/best_eer_{config}_{mprinter}_{mmorph_type}.pt -o results/eval_{mprinter}_{mmorph_type}_on_{printer}_{morph_type}.json --height={height} --width={width} --grapher-units={grapher_units} --num-heads={num_heads} --total-layers={total_layers} --act={act} --pred-type={pred_type} --batch-size={batch_size}"
+    process: str = f"python evaluate.py -c {config} --morph-type={morph_type} --printer={printer} -f models/checkpoints/best_eer_{config}_{mprinter}_{mmorph_type}.pt -o results/eval_{mprinter}_{mmorph_type}_on_{printer}_{morph_type}.json --height={height} --width={width} --grapher-units={grapher_units} --total-layers={total_layers} --act={act} --pred-type={pred_type} --batch-size={batch_size}"
     os.system(process)
 
 
@@ -151,29 +160,36 @@ printers: List[str] = ["DNP", "rico", "Digital"]
 
 def main():
     args = parser.parse_args()
+    total_set = []
     for mprinter in printers:
+        if mprinter == "Digital":
+            continue
         for mmorph in morph_types:
-            print(
-                f"Evaluation models trained on printer: {mprinter} and morph type: {mmorph}"
-            )
             for printer in printers:
                 for morph in morph_types:
-                    evaluate(
-                        printer,
-                        morph,
-                        mprinter,
-                        mmorph,
-                        args.config,
-                        args.batch_size,
-                        args.total_layers,
-                        args.num_heads,
-                        args.grapher_units,
-                        args.height,
-                        args.width,
-                        args.pred_type,
-                        args.act,
-                    )
-                    time.sleep(1)
+                    total_set.append((mprinter, mmorph, printer, morph))
+    if args.reverse:
+        total_set = list(reversed(total_set))
+
+    for mprinter, mmorph, printer, morph in tqdm(total_set):
+        try:
+            evaluate(
+                printer,
+                morph,
+                mprinter,
+                mmorph,
+                args.config,
+                args.batch_size,
+                args.total_layers,
+                args.num_heads,
+                args.grapher_units,
+                args.height,
+                args.width,
+                args.pred_type,
+                args.act,
+            )
+        except KeyboardInterrupt:
+            break
 
 
 if __name__ == "__main__":

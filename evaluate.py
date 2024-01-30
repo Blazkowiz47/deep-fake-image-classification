@@ -118,10 +118,10 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--num-heads",
-    type=int,
-    default=5,
-    help="Total heads",
+    "--heads-list",
+    type=str,
+    default="4,2,1,1",
+    help="Defines total number of heads in attention.",
 )
 
 parser.add_argument(
@@ -161,7 +161,7 @@ def main():
         args.act,
         args.pred_type,
         2,
-        args.num_heads,
+        args.heads_list,
         args.height,
         args.width,
         args.total_layers,
@@ -203,7 +203,7 @@ def main():
         [train_dataset, test_dataset], ["Train Set", "Test Set"]
     ):
         losses = []
-        for inputs, labels in tqdm(dataset, desc=f"Evaluating {dataset_name}: "):
+        for inputs, labels in dataset:
             inputs = inputs.to(device).float()
             labels = labels.to(device).float()
             outputs = model(inputs)  # pylint: disable=E1102

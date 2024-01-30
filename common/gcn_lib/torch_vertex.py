@@ -171,10 +171,10 @@ class DyGraphConv2d(GraphConv2d):
             y = y.reshape(B, C, -1, 1).contiguous()
         x = x.view(B, C, -1, 1)
         if self.heads:
-            splitheads = [*torch.split(x, self.heads, 2)]
+            splitheads = [*torch.split(x, (H * W) // self.heads, 2)]
             splity = None
-            if y:
-                splity = torch.split(y, self.heads, 2)
+            if y is not None:
+                splity = torch.split(y, (H * W) // self.heads, 2)
 
             for head in range(self.heads):
                 edge_index = self.dilated_knn_graph[head](
