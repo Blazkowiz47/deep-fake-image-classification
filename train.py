@@ -307,6 +307,18 @@ def get_config(
             total_layers,
             grapher_units=graphers,
         )
+
+    if config == "test_multihead_ffn":
+        heads = [int(x) for x in heads_list.split(",")]
+        return cfgs.test_multihead_ffn(
+            act,
+            pred_type,
+            n_classes,
+            height,
+            width,
+            heads,
+        )
+
     raise ValueError(f"Wrong config: {config}")
 
 

@@ -5,6 +5,8 @@ calls the train pipeline with configs.
 import argparse
 
 import os
+from multiprocessing import Pool
+from typing import List
 
 # python train.py --config="grapher_12_conv_gelu_config" --wandb-run-name="grapher only"
 
@@ -170,10 +172,14 @@ def main():
     ]
     if args.reverse:
         morph_types = reversed(morph_types)
+    processes: List[str] = []
     for morph_type in morph_types:
         wandb_run_name = args.config + "_" + args.printer + "_" + morph_type
         process = f"python train.py -c {args.config} --printer={args.printer} --morph-type={morph_type} --epochs={args.epochs} --batch-size={args.batch_size}  --grapher-units={args.grapher_units} --total-layers={args.total_layers} --validate-after-epochs={args.validate_after_epochs} --wandb-run-name={wandb_run_name}"
-        os.system(process)
+        processes.append(process)
+
+    with Pool(2) as p:
+        p.map(os.system, processes)
 
 
 if __name__ == "__main__":
