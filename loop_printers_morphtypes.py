@@ -153,11 +153,20 @@ parser.add_argument(
 )
 
 
-def main():
+parser.add_argument(
+    "--processes",
+    type=int,
+    default=2,
+    help="Will train that number of processes simultaneously",
+)
+
+
+def main() -> None:
     """
     Wrapper for the driver.
     """
     args = parser.parse_args()
+    printers = ["DNP", "rico"]
     morph_types = [
         "Morphing_Diffusion_2024",
         "cvmi",
@@ -171,14 +180,16 @@ def main():
         "stylegan",
     ]
     if args.reverse:
-        morph_types = reversed(morph_types)
-    processes: List[str] = []
-    for morph_type in morph_types:
-        wandb_run_name = args.config + "_" + args.printer + "_" + morph_type
-        process = f"python train.py -c {args.config} --printer={args.printer} --morph-type={morph_type} --epochs={args.epochs} --batch-size={args.batch_size}  --grapher-units={args.grapher_units} --total-layers={args.total_layers} --validate-after-epochs={args.validate_after_epochs} --wandb-run-name={wandb_run_name}"
-        processes.append(process)
+        morph_types = list(reversed(morph_types))
 
-    with Pool(2) as p:
+    processes: List[str] = []
+    for printer in printers:
+        for morph_type in morph_types:
+            wandb_run_name = args.config + "_" + printer + "_" + morph_type
+            process = f"python train.py -c {args.config} --printer={printer} --morph-type={morph_type} --epochs={args.epochs} --batch-size={args.batch_size}  --grapher-units={args.grapher_units} --total-layers={args.total_layers} --validate-after-epochs={args.validate_after_epochs} --wandb-run-name={wandb_run_name}"
+            processes.append(process)
+
+    with Pool(args.processes) as p:
         p.map(os.system, processes)
 
 

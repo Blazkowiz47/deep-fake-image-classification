@@ -131,6 +131,13 @@ parser.add_argument(
     help="Evaluate half of thr morphs",
 )
 
+parser.add_argument(
+    "--processes",
+    type=int,
+    default=2,
+    help="Will train that number of processes simultaneously",
+)
+
 
 def evaluate(
     printer,
@@ -170,7 +177,7 @@ def main() -> None:
     args = parser.parse_args()
     total_set: List[Any] = []
     for mprinter in printers:
-        if mprinter != args.printer:
+        if mprinter == "Digital":
             continue
         for mmorph in morph_types:
             for printer in printers:
@@ -195,9 +202,8 @@ def main() -> None:
     if args.reverse:
         total_set = list(reversed(total_set))
     processes = [evaluate(*x) for x in total_set]
-    with Pool(2) as p:
-        x = p.map(os.system, processes)
-        print(f"done training: {args.printer}")
+    with Pool(args.processes) as p:
+        p.map(os.system, processes)
 
 
 if __name__ == "__main__":
