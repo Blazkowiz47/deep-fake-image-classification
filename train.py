@@ -319,6 +319,16 @@ def get_config(
             heads,
         )
 
+    if config == "test_global_local_ffn":
+        heads = [int(x) for x in heads_list.split(",")]
+        return cfgs.test_global_local_ffn(
+            act,
+            pred_type,
+            n_classes,
+            height,
+            width,
+            heads,
+        )
     raise ValueError(f"Wrong config: {config}")
 
 

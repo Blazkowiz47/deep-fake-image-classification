@@ -231,6 +231,7 @@ class GrapherConfig:
     max_dilation: float = 0
     neighbour_number: int = 9
     heads: int = 4
+    globallocal: bool = False
 
 
 class Grapher(nn.Module):
@@ -267,9 +268,25 @@ class Grapher(nn.Module):
             config.heads,
             config.r,
         )
+        self.gloabllocal = config.globallocal
+        if config.globallocal:
+            self.graph_conv_global = DyGraphConv2d(
+                config.in_channels,
+                config.in_channels,
+                config.kernel_size,
+                config.dilation,
+                config.conv,
+                config.act,
+                config.norm,
+                config.bias,
+                config.stochastic,
+                config.epsilon,
+                1,
+                config.heads,
+            )
         self.fc2 = nn.Sequential(
             nn.Conv2d(
-                config.in_channels,
+                2 * config.in_channels if self.gloabllocal else config.in_channels,
                 config.in_channels,
                 1,
                 stride=1,
@@ -321,7 +338,11 @@ class Grapher(nn.Module):
         x = self.fc1(x)
         B, C, H, W = x.shape
         relative_pos = self._get_relative_pos(self.relative_pos, H, W)
-        x = self.graph_conv(x, relative_pos)
+        o1 = self.graph_conv(x, relative_pos)
+        if self.gloabllocal:
+            o2 = self.graph_conv_global(x, relative_pos)
+            x = torch.concat((o1, o2), dim=1)
+
         x = self.fc2(x)
         x = self.drop_path(x) + _tmp
         return x
